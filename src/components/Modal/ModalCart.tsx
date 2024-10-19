@@ -189,7 +189,7 @@ const ModalCart = ({ serverTimeLeft }: { serverTimeLeft: CountdownTimeType }) =>
                                         View cart
                                     </Link>
                                     <Link
-                                        href={'/'}
+                                        href={'/checkout'}
                                         className='button-main basis-1/2 text-center uppercase'
                                         onClick={closeModalCart}
                                     >
