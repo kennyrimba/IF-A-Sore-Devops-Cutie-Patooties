@@ -137,6 +137,11 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                 <div className="line absolute bg-line w-px h-6 -right-6"></div>
                             </div>
                             <div className="list-action flex items-center gap-4">
+                                <Link href={'/add-item'}>
+                                    <div className="max-md:hidden search-icon flex items-center cursor-pointer relative">
+                                        <Icon.PlusCircle size={24} color='black'></Icon.PlusCircle>
+                                    </div>
+                                </Link>
                                 <div className="user-icon flex items-center justify-center cursor-pointer">
                                     <Icon.User size={24} color='black' onClick={handleLoginPopup} />
                                     <div
@@ -163,7 +168,6 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                     </div>
                 </div>
             </div>
-
         </>
     )
 }
