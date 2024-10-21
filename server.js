@@ -3,6 +3,7 @@ const next = require('next');
 const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -48,6 +49,28 @@ app.prepare().then(() => {
         return res.status(500).json({ error: err.message });
       }
       res.status(200).json({ data: rows });
+    });
+  });
+
+  // Register endpoint
+  server.post('/api/register', async (req, res) => {
+    const { username, email, password } = req.body;
+
+    // Validate input
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert the new user into the database
+    const sql = 'INSERT INTO user (username, email, password) VALUES (?, ?, ?)';
+    db.run(sql, [username, email, hashedPassword], function (err) {
+      if (err) {
+        return res.status(500).json({ error: 'Error creating user' });
+      }
+      res.status(201).json({ message: 'User registered successfully', userId: this.lastID });
     });
   });
 
