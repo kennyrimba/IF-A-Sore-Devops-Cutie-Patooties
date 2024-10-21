@@ -1,17 +1,36 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TopNavOne from '@/components/Header/TopNav/TopNavOne';
 import MenuOne from '@/components/Header/Menu/MenuOne';
 import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import Footer from '@/components/Footer/Footer';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
+import { useRouter } from 'next/navigation';
 
 const Register = () => {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn === 'true') {
+        // Redirect ke halaman lain jika sudah login, misalnya ke dashboard
+        router.push('/');  // Ubah dengan halaman yang diinginkan
+    }
+  }, [router]);
+
+  // if (typeof window !== 'undefined') {
+  //   const isLoggedIn = localStorage.getItem('isLoggedIn');
+  //   if (isLoggedIn === 'true') {
+  //     // Redirect lebih cepat, langsung di tahap ini sebelum komponen dirender
+  //     router.push('/');
+  //     return null; // Jangan render komponen saat redirect
+  //   }
+  // }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

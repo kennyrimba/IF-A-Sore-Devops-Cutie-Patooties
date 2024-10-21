@@ -41,16 +41,16 @@ app.prepare().then(() => {
     res.json({ message: 'Hello from Express!' });
   });
 
-  // Rute API: Ambil semua produk dari SQLite
-  server.get('/api/user', (req, res) => {
-    const sql = 'SELECT * FROM user';
-    db.all(sql, [], (err, rows) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      res.status(200).json({ data: rows });
-    });
-  });
+  // // Rute API: Ambil semua produk dari SQLite
+  // server.get('/api/user', (req, res) => {
+  //   const sql = 'SELECT * FROM user';
+  //   db.all(sql, [], (err, rows) => {
+  //     if (err) {
+  //       return res.status(500).json({ error: err.message });
+  //     }
+  //     res.status(200).json({ data: rows });
+  //   });
+  // });
 
   // Register endpoint
   server.post('/api/register', async (req, res) => {
@@ -74,6 +74,35 @@ app.prepare().then(() => {
     });
   });
 
+  // Route untuk login
+  server.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email dan password harus diisi' });
+    }
+
+    // Cek apakah pengguna ada di database
+    const sql = 'SELECT * FROM user WHERE email = ?';
+    db.get(sql, [email], async (err, user) => {
+      if (err) {
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+
+      if (!user) {
+        return res.status(400).json({ error: 'Pengguna tidak ditemukan' });
+      }
+
+      // Cek apakah password cocok
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({ error: 'Password salah' });
+      }
+
+      // Jika berhasil login, kirimkan data pengguna (bisa juga token JWT)
+      res.status(200).json({ message: 'Login berhasil', username: user.username });
+    });
+  });
 
   // Route to add a new product
   server.post('/api/add-product', (req, res) => {
