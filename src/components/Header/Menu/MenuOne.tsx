@@ -22,6 +22,7 @@ interface Props {
 const MenuOne: React.FC<Props> = ({ props }) => {
     const router = useRouter()
     const pathname = usePathname()
+    const [isLoggedIn, setIsLoggedIn] = useState(false); // cek apakah user login
     let [selectedType, setSelectedType] = useState<string | null>()
     const { openLoginPopup, handleLoginPopup } = useLoginPopup()
     //const { openMenuMobile, handleMenuMobile } = useMenuMobile()
@@ -53,6 +54,22 @@ const MenuOne: React.FC<Props> = ({ props }) => {
             window.removeEventListener('scroll', handleScroll);
         };
     }, [lastScrollPosition]);
+
+    // Mengecek status login dari localStorage
+    useEffect(() => {
+        const loggedInStatus = localStorage.getItem('isLoggedIn');
+        setIsLoggedIn(loggedInStatus === 'true');
+    }, []);
+
+    // Fungsi untuk logout
+    const handleLogout = () => {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username'); // Jika ingin menghapus data username juga
+        setIsLoggedIn(false);
+        // Menampilkan alert setelah logout
+        window.alert('You have successfully logged out!');
+        router.push('/'); // Redirect ke halaman utama setelah logout
+    };
 
     const handleGenderClick = (gender: string) => {
         router.push(`/shop/breadcrumb1?gender=${gender}`);
@@ -142,7 +159,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                         <Icon.PlusCircle size={24} color='black'></Icon.PlusCircle>
                                     </div>
                                 </Link>
-                                <div className="user-icon flex items-center justify-center cursor-pointer">
+                                {/* <div className="user-icon flex items-center justify-center cursor-pointer">
                                     <Icon.User size={24} color='black' onClick={handleLoginPopup} />
                                     <div
                                         className={`login-popup absolute top-[74px] w-[320px] p-7 rounded-xl bg-white box-shadow-sm 
@@ -155,7 +172,36 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                         <div className="bottom pt-4 border-t border-line"></div>
                                         <Link href={'#!'} className='body1 hover:underline'>Support</Link>
                                     </div>
+                                </div> */}
+
+                                {/* Icon User */}
+                                <div className="user-icon flex items-center justify-center cursor-pointer">
+                                    <Icon.User size={24} color='black' onClick={handleLoginPopup} />
+                                    <div
+                                        className={`login-popup absolute top-[74px] w-[320px] p-7 rounded-xl bg-white box-shadow-sm 
+                                            ${openLoginPopup ? 'open' : ''}`}
+                                    >
+                                        {isLoggedIn ? (
+                                            // Jika sudah login, tampilkan tombol Logout dan Support
+                                            <>
+                                                <button className="button-main w-full text-center" onClick={handleLogout}>Logout</button>
+                                                <div className="bottom pt-4 border-t border-line"></div>
+                                                <Link href={'/support'} className='body1 hover:underline'>Support</Link>
+                                            </>
+                                        ) : (
+                                            // Jika belum login, tampilkan Login dan Register
+                                            <>
+                                                <Link href={'/login'} className="button-main w-full text-center">Login</Link>
+                                                <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?
+                                                    <Link href={'/register'} className='text-black pl-1 hover:underline'>Register</Link>
+                                                </div>
+                                                <div className="bottom pt-4 border-t border-line"></div>
+                                                <Link href={'/support'} className='body1 hover:underline'>Support</Link>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
+
                                 <div className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist}>
                                     <Icon.Heart size={24} color='black' />
                                 </div>
