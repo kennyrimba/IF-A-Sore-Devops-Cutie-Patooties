@@ -1,3 +1,5 @@
+/* eslint-disable no-console, no-debugger, semi */
+
 -- Tabel user
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
