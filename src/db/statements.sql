@@ -1,4 +1,4 @@
-/* eslint-disable no-console, no-debugger, semi */
+/* eslint-disable */
 
 -- Tabel user
 CREATE TABLE IF NOT EXISTS users (
