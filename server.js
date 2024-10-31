@@ -65,7 +65,7 @@ app.prepare().then(() => {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // Insert the new user into the database
-    const sql = 'INSERT INTO user (username, email, password) VALUES (?, ?, ?)'
+    const sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)'
     db.run(sql, [username, email, hashedPassword], function (err) {
       if (err) {
         return res.status(500).json({ error: 'Error creating user' })
@@ -83,24 +83,24 @@ app.prepare().then(() => {
     }
 
     // Cek apakah pengguna ada di database
-    const sql = 'SELECT * FROM user WHERE email = ?'
-    db.get(sql, [email], async (err, user) => {
+    const sql = 'SELECT * FROM users WHERE email = ?'
+    db.get(sql, [email], async (err, users) => {
       if (err) {
         return res.status(500).json({ error: 'Internal server error' })
       }
 
-      if (!user) {
+      if (!users) {
         return res.status(400).json({ error: 'Pengguna tidak ditemukan' })
       }
 
       // Cek apakah password cocok
-      const isPasswordValid = await bcrypt.compare(password, user.password)
+      const isPasswordValid = await bcrypt.compare(password, users.password)
       if (!isPasswordValid) {
         return res.status(400).json({ error: 'Password salah' })
       }
 
       // Jika berhasil login, kirimkan data pengguna (bisa juga token JWT)
-      res.status(200).json({ message: 'Login berhasil', username: user.username })
+      res.status(200).json({ message: 'Login berhasil', username: users.username })
     })
   })
 
@@ -150,9 +150,6 @@ app.prepare().then(() => {
       return res.status(400).json({ error: 'Payment failed' })
     }
 
-    // Calculate the total amount
-    const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) - (discount || 0) + (shippingFee || 0)
-
     // Prepare shipping details
     const shippingDetails = {
       firstName: shippingInfo.first_name,
@@ -168,7 +165,7 @@ app.prepare().then(() => {
     }
 
     // Insert order into pending_orders
-    const insertOrder = `INSERT INTO pending_orders (
+    const insertOrder = `INSERT INTO order_status (
     user_id, first_name, last_name, email, phone_number, country, city, street_address, state, postal_code, note, 
     is_paid, order_status, product_id
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -215,7 +212,7 @@ app.prepare().then(() => {
     const { orderId } = req.body
 
     // Query to find the order by ID
-    db.get('SELECT order_status FROM pending_orders WHERE order_id = ?', [orderId], (err, row) => {
+    db.get('SELECT order_status FROM order_status WHERE order_id = ?', [orderId], (err, row) => {
       if (err) {
         return res.status(500).json({ error: 'Internal server error' })
       }

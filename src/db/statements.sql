@@ -1,5 +1,5 @@
--- Tabel "user"
-CREATE TABLE IF NOT EXISTS "user" (
+-- Tabel user
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS "user" (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE "pending_orders" (
+CREATE TABLE order_status (
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     first_name TEXT NOT NULL,
