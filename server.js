@@ -130,103 +130,103 @@ app.prepare().then(() => {
     });
   });
 
-// Checkout endpoint
-server.post('/api/checkout', (req, res) => {
-  const { cartItems, shippingInfo, paymentInfo, discount, shippingFee, userId } = req.body;
+  // Checkout endpoint
+  server.post('/api/checkout', (req, res) => {
+    const { cartItems, shippingInfo, paymentInfo, discount, shippingFee, userId } = req.body;
 
-  // Validate required fields
-  if (!cartItems || cartItems.length === 0) {
-    return res.status(400).json({ error: 'Cart cannot be empty' });
-  }
+    // Validate required fields
+    if (!cartItems || cartItems.length === 0) {
+      return res.status(400).json({ error: 'Cart cannot be empty' });
+    }
 
-  if (!userId || !shippingInfo || !paymentInfo) {
-    return res.status(400).json({ error: 'Missing required checkout information' });
-  }
+    if (!userId || !shippingInfo || !paymentInfo) {
+      return res.status(400).json({ error: 'Missing required checkout information' });
+    }
 
-  // Process payment (example only, integrate real payment processing logic)
-  const paymentProcessed = true; // simulate payment success
+    // Process payment (example only, integrate real payment processing logic)
+    const paymentProcessed = true; // simulate payment success
 
-  if (!paymentProcessed) {
-    return res.status(400).json({ error: 'Payment failed' });
-  }
+    if (!paymentProcessed) {
+      return res.status(400).json({ error: 'Payment failed' });
+    }
 
-  // Calculate the total amount
-  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) - (discount || 0) + (shippingFee || 0);
+    // Calculate the total amount
+    const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) - (discount || 0) + (shippingFee || 0);
 
-  // Prepare shipping details
-  const shippingDetails = {
-    firstName: shippingInfo.first_name,
-    lastName: shippingInfo.last_name,
-    email: shippingInfo.email,
-    phoneNumber: shippingInfo.phone_number,
-    country: shippingInfo.country,
-    city: shippingInfo.city,
-    streetAddress: shippingInfo.street_address,
-    state: shippingInfo.state,
-    postalCode: shippingInfo.postal_code,
-    note: shippingInfo.note || ""
-  };
+    // Prepare shipping details
+    const shippingDetails = {
+      firstName: shippingInfo.first_name,
+      lastName: shippingInfo.last_name,
+      email: shippingInfo.email,
+      phoneNumber: shippingInfo.phone_number,
+      country: shippingInfo.country,
+      city: shippingInfo.city,
+      streetAddress: shippingInfo.street_address,
+      state: shippingInfo.state,
+      postalCode: shippingInfo.postal_code,
+      note: shippingInfo.note || ""
+    };
 
-  // Insert order into pending_orders
-  const insertOrder = `INSERT INTO pending_orders (
+    // Insert order into pending_orders
+    const insertOrder = `INSERT INTO pending_orders (
     user_id, first_name, last_name, email, phone_number, country, city, street_address, state, postal_code, note, 
     is_paid, order_status, product_id
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-  // Create an array of promises for inserting orders
-  const insertPromises = cartItems.map(item => {
-    return new Promise((resolve, reject) => {
-      db.run(insertOrder, [
-        userId, 
-        shippingDetails.firstName, 
-        shippingDetails.lastName, 
-        shippingDetails.email, 
-        shippingDetails.phoneNumber, 
-        shippingDetails.country, 
-        shippingDetails.city, 
-        shippingDetails.streetAddress, 
-        shippingDetails.state, 
-        shippingDetails.postalCode, 
-        shippingDetails.note, 
-        paymentProcessed, // Assume this is a boolean for is_paid
-        'pending', // Example order status
-        item.id // Assuming each item has a product_id
-      ], function(err) {
-        if (err) {
-          return reject(err);
-        }
-        resolve(this.lastID); // Resolve with the ID of the last inserted order
+    // Create an array of promises for inserting orders
+    const insertPromises = cartItems.map(item => {
+      return new Promise((resolve, reject) => {
+        db.run(insertOrder, [
+          userId,
+          shippingDetails.firstName,
+          shippingDetails.lastName,
+          shippingDetails.email,
+          shippingDetails.phoneNumber,
+          shippingDetails.country,
+          shippingDetails.city,
+          shippingDetails.streetAddress,
+          shippingDetails.state,
+          shippingDetails.postalCode,
+          shippingDetails.note,
+          paymentProcessed, // Assume this is a boolean for is_paid
+          'pending', // Example order status
+          item.id // Assuming each item has a product_id
+        ], function (err) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(this.lastID); // Resolve with the ID of the last inserted order
+        });
       });
     });
+
+    // Use Promise.all to handle all insert promises
+    Promise.all(insertPromises)
+      .then((responses) => {
+        res.status(200).json({ message: 'Checkout successful', orderIds: responses });
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while saving orders' });
+      });
   });
 
-  // Use Promise.all to handle all insert promises
-  Promise.all(insertPromises)
-    .then((responses) => {
-      res.status(200).json({ message: 'Checkout successful', orderIds: responses });
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(500).json({ error: 'An error occurred while saving orders' });
-    });
-});
+  server.post('/api/track-order', (req, res) => {
+    const { orderId } = req.body;
 
-server.post('/api/track-order', (req, res) => {
-  const { orderId } = req.body;
-
-  // Query to find the order by ID
-  db.get('SELECT order_status FROM pending_orders WHERE order_id = ?', [orderId], (err, row) => {
+    // Query to find the order by ID
+    db.get('SELECT order_status FROM pending_orders WHERE order_id = ?', [orderId], (err, row) => {
       if (err) {
-          return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ error: 'Internal server error' });
       }
       if (!row) {
-          return res.status(404).json({ error: 'Order not found' });
+        return res.status(404).json({ error: 'Order not found' });
       }
 
       // If order is found, return its status
       res.json({ order_status: row.order_status });
+    });
   });
-});
 
 
   // Default request handler for Next.js

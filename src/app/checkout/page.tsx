@@ -158,7 +158,7 @@ const Checkout = () => {
                                                 <input className="cursor-pointer" type="radio" id="credit" name="payment" checked={activePayment === 'credit-card'} onChange={() => handlePayment('credit-card')} />
                                                 <label className="text-button pl-2 cursor-pointer" htmlFor="credit">Credit Card</label>
                                                 <div className="infor">
-                                                    <div className="text-on-surface-variant1 pt-4">Make your payment directly into our bank account. Your order will not be shipped until the funds have cleared in our account.</div>
+                                                    <div className="text-on-surface-variant1 pt-4">Enter Your Credit Card Information</div>
                                                     <div className="row">
                                                         <div className="col-12 mt-3">
                                                             <label htmlFor="cardNumberCredit">Card Numbers</label>
@@ -182,17 +182,10 @@ const Checkout = () => {
                                                     <div className="text-on-surface-variant1 pt-4">Make your payment directly into our bank account. Your order will not be shipped until the funds have cleared in our account.</div>
                                                 </div>
                                             </div>
-                                            <div className={`type bg-surface p-5 border border-line rounded-lg ${activePayment === 'paypal' ? 'open' : ''}`}>
-                                                <input className="cursor-pointer" type="radio" id="paypal" name="payment" checked={activePayment === 'paypal'} onChange={() => handlePayment('paypal')} />
-                                                <label className="text-button pl-2 cursor-pointer" htmlFor="paypal">Paypal</label>
-                                                <div className="infor">
-                                                    <div className="text-on-surface-variant1 pt-4">Make your payment directly into our bank account. Your order will not be shipped until the funds have cleared in our account.</div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                     <div className="block-button md:mt-7 mt-4">
-                                        <button 
+                                        <button
                                             className="button-main px-6 py-3 bg-blue-600 text-black bg-purple rounded-lg hover:bg-blue-700"
                                             type="submit"
                                         >
