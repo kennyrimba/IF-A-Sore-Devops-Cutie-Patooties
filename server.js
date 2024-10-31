@@ -65,7 +65,7 @@ app.prepare().then(() => {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // Insert the new user into the database
-    const sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)'
+    const sql = 'INSERT INTO users (username, email, pword) VALUES (?, ?, ?)'
     db.run(sql, [username, email, hashedPassword], function (err) {
       if (err) {
         return res.status(500).json({ error: 'Error creating user' })
@@ -94,7 +94,7 @@ app.prepare().then(() => {
       }
 
       // Cek apakah password cocok
-      const isPasswordValid = await bcrypt.compare(password, users.password)
+      const isPasswordValid = await bcrypt.compare(password, users.pword)
       if (!isPasswordValid) {
         return res.status(400).json({ error: 'Password salah' })
       }
@@ -166,7 +166,7 @@ app.prepare().then(() => {
 
     // Insert order into pending_orders
     const insertOrder = `INSERT INTO order_status (
-    user_id, first_name, last_name, email, phone_number, country, city, street_address, state, postal_code, note, 
+    user_id, first_name, last_name, email, phone_number, country, city, street_address, province, postal_code, note, 
     is_paid, order_status, product_id
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 

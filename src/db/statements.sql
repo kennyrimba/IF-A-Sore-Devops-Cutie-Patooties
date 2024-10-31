@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,
+    pword TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -18,7 +18,7 @@ CREATE TABLE order_status (
     country TEXT,
     city TEXT,
     street_address TEXT,
-    state TEXT,
+    province TEXT,
     postal_code TEXT,
     note TEXT,
     is_paid INTEGER DEFAULT 0,
