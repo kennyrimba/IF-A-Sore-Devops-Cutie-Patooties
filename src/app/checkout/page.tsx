@@ -70,8 +70,6 @@ const Checkout = () => {
             paymentInfo: {
                 method: activePayment,
             },
-            discount,
-            shippingFee,
             userId: 1, // Replace with actual user ID from context or state
         };
 

@@ -132,7 +132,7 @@ app.prepare().then(() => {
 
   // Checkout endpoint
   server.post('/api/checkout', (req, res) => {
-    const { cartItems, shippingInfo, paymentInfo, discount, shippingFee, userId } = req.body
+    const { cartItems, shippingInfo, paymentInfo, userId } = req.body
 
     // Validate required fields
     if (!cartItems || cartItems.length === 0) {
