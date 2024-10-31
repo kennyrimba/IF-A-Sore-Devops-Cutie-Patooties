@@ -1,0 +1,4 @@
+linters:
+  sql:
+    disable:
+      - L029
