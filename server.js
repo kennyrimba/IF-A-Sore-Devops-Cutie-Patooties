@@ -211,7 +211,22 @@ server.post('/api/checkout', (req, res) => {
     });
 });
 
+server.post('/api/track-order', (req, res) => {
+  const { orderId } = req.body;
 
+  // Query to find the order by ID
+  db.get('SELECT order_status FROM pending_orders WHERE order_id = ?', [orderId], (err, row) => {
+      if (err) {
+          return res.status(500).json({ error: 'Internal server error' });
+      }
+      if (!row) {
+          return res.status(404).json({ error: 'Order not found' });
+      }
+
+      // If order is found, return its status
+      res.json({ order_status: row.order_status });
+  });
+});
 
 
   // Default request handler for Next.js
