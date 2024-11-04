@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import TopNavOne from '@/components/Header/TopNav/TopNavOne';
@@ -8,6 +8,7 @@ import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import Footer from '@/components/Footer/Footer';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import { useRouter } from 'next/navigation';
+import Category from '@/components/Organic/Category';
 
 const AddItem = () => {
     const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
@@ -18,79 +19,91 @@ const AddItem = () => {
     const [brand, setBrand] = useState('');
     const [quantity, setQuantity] = useState('');
     const [description, setDescription] = useState('');
+    const [images, setImages] = useState<File[]>([]); // State for images
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]); // State for image previews
     const [successMessage, setSuccessMessage] = useState('');
     const router = useRouter(); // For navigation
+    const fileInputRef = useRef<HTMLInputElement | null>(null); // Reference to file input
+
+    // Rename function to give readable names to the images
+    const renameFile = (file: File, newName: string) => {
+        return new File([file], newName, { type: file.type });
+    };
+
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files) {
+            const filesArray = Array.from(event.target.files).map((file, index) => {
+                // Rename each file with a unique, readable name
+                const newName = `${itemName || 'image'}-${index}-${Date.now()}.${file.name.split('.').pop()}`;
+                return renameFile(file, newName);
+            });
+
+            setImages(filesArray);
+            setImagePreviews(filesArray.map(file => URL.createObjectURL(file))); // Generate preview URLs
+        }
+    };
+
 
     const handleSizeChange = (size: string) => {
-        setSelectedSizes(prev => 
+        setSelectedSizes(prev =>
             prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
         );
+    };
+    const triggerFileInput = () => {
+        fileInputRef.current?.click(); // Trigger file input click
     };
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-
-        const formData = {
+    
+        const formData = new FormData();
+    
+        // Create a product object
+        const productData = {
             name: itemName,
+            category: "fashion",
             type: itemType,
-            gender,
-            price: parseFloat(price),
-            brand,
-            sizes: selectedSizes,
-            description,
-            category: 'fashion',
+            gender: gender,
             new: true,
             sale: false,
-            rate: 0,
+            rate: 5,
+            price: parseInt(price, 10),
+            originPrice: parseInt(price, 10),
+            brand: brand,
             sold: 0,
             quantity: parseInt(quantity, 10),
             quantityPurchase: 1,
-            variation: [
-                {
-                    color: "black",
-                    colorCode: "#1F1F1F",
-                    colorImage: "/images/product/1000x1000.png",
-                    image: "/images/product/1000x1000.png"
-                }
-            ],
-            thumbImage: [
-                "/images/product/1000x1000.png",
-                "/images/product/1000x1000.png"
-            ],
-            images: [
-                "/images/product/1000x1000.png",
-                "/images/product/1000x1000.png",
-                "/images/product/1000x1000.png"
-            ],
+            sizes: selectedSizes,
+            description: description,
             action: "quick shop",
-            slug: itemType,
+            slug: "t-shirt",
         };
-
+    
+        // Append the product object as a JSON string
+        formData.append('product', JSON.stringify(productData)); // Update this line
+    
+        // Append images
+        images.forEach(image => formData.append('images', image)); // Add images to form data
+    
         try {
             const response = await fetch('/api/add-product', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
+                body: formData,
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to add product');
-            }
-
+    
+            if (!response.ok) throw new Error('Failed to add product');
+    
             const result = await response.json();
-            console.log('Product added:', result);
-
-            // Show success message and redirect after 3 seconds
+            console.log(result);
             setSuccessMessage('Product added successfully!');
             setTimeout(() => {
-                router.push('/'); // Redirect to root
+                router.push('/');
             }, 3000);
         } catch (error) {
             console.error('Error adding product:', error);
         }
     };
+    
 
     return (
         <>
@@ -108,10 +121,10 @@ const AddItem = () => {
                                     <form onSubmit={handleSubmit}>
                                         <div className="grid sm:grid-cols-2 gap-4 gap-y-5">
                                             <div className="col-span-full select-block">
-                                                <select 
-                                                    className="border border-line px-4 py-3 w-full rounded-lg" 
-                                                    id="type" 
-                                                    name="type" 
+                                                <select
+                                                    className="border border-line px-4 py-3 w-full rounded-lg"
+                                                    id="type"
+                                                    name="type"
                                                     value={itemType}
                                                     onChange={(e) => setItemType(e.target.value)}
                                                 >
@@ -127,21 +140,21 @@ const AddItem = () => {
                                                 <Icon.CaretDown className='arrow-down' />
                                             </div>
                                             <div className="col-span-full">
-                                                <input 
-                                                    className="border-line px-4 py-3 w-full rounded-lg" 
-                                                    id="name" 
-                                                    type="text" 
-                                                    placeholder="Item Name *" 
+                                                <input
+                                                    className="border-line px-4 py-3 w-full rounded-lg"
+                                                    id="name"
+                                                    type="text"
+                                                    placeholder="Item Name *"
                                                     value={itemName}
                                                     onChange={(e) => setItemName(e.target.value)}
-                                                    required 
+                                                    required
                                                 />
                                             </div>
                                             <div className="col-span-full select-block">
-                                                <select 
-                                                    className="border border-line px-4 py-3 w-full rounded-lg" 
-                                                    id="gender" 
-                                                    name="gender" 
+                                                <select
+                                                    className="border border-line px-4 py-3 w-full rounded-lg"
+                                                    id="gender"
+                                                    name="gender"
                                                     value={gender}
                                                     onChange={(e) => setGender(e.target.value)}
                                                 >
@@ -152,36 +165,36 @@ const AddItem = () => {
                                                 <Icon.CaretDown className='arrow-down' />
                                             </div>
                                             <div className="col-span-full">
-                                                <input 
-                                                    className="border-line px-4 py-3 w-full rounded-lg" 
-                                                    id="price" 
-                                                    type="number" 
-                                                    placeholder="Price *" 
+                                                <input
+                                                    className="border-line px-4 py-3 w-full rounded-lg"
+                                                    id="price"
+                                                    type="number"
+                                                    placeholder="Price *"
                                                     value={price}
                                                     onChange={(e) => setPrice(e.target.value)}
-                                                    required 
+                                                    required
                                                 />
                                             </div>
                                             <div className="col-span-full">
-                                                <input 
-                                                    className="border-line px-4 py-3 w-full rounded-lg" 
-                                                    id="brand" 
-                                                    type="text" 
-                                                    placeholder="Brand *" 
+                                                <input
+                                                    className="border-line px-4 py-3 w-full rounded-lg"
+                                                    id="brand"
+                                                    type="text"
+                                                    placeholder="Brand *"
                                                     value={brand}
                                                     onChange={(e) => setBrand(e.target.value)}
-                                                    required 
+                                                    required
                                                 />
                                             </div>
                                             <div className="col-span-full">
-                                                <input 
-                                                    className="border-line px-4 py-3 w-full rounded-lg" 
-                                                    id="quantity" 
-                                                    type="number" 
-                                                    placeholder="Quantity Available *" 
+                                                <input
+                                                    className="border-line px-4 py-3 w-full rounded-lg"
+                                                    id="quantity"
+                                                    type="number"
+                                                    placeholder="Quantity Available *"
                                                     value={quantity}
                                                     onChange={(e) => setQuantity(e.target.value)}
-                                                    required 
+                                                    required
                                                 />
                                             </div>
                                             <div className="col-span-full">
@@ -207,16 +220,40 @@ const AddItem = () => {
                                                 </div>
                                             </div>
                                             <div className="col-span-full">
-                                                <textarea 
-                                                    className="border-line px-4 py-3 w-full rounded-lg" 
-                                                    id="description" 
-                                                    placeholder="Description *" 
+                                                <textarea
+                                                    className="border-line px-4 py-3 w-full rounded-lg"
+                                                    id="description"
+                                                    placeholder="Description *"
                                                     value={description}
                                                     onChange={(e) => setDescription(e.target.value)}
-                                                    required 
+                                                    required
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="bg-blue-500 px-4 py-2 rounded-lg cursor-pointer"
+                                                    onClick={triggerFileInput}
+                                                    style={{ display: 'inline-block' }} // Make sure it's inline and visible
+                                                >
+                                                    Select Images
+                                                </button>
+                                                <input
+                                                    type="file"
+                                                    multiple
+                                                    ref={fileInputRef}
+                                                    onChange={handleImageChange}
+                                                    style={{ display: 'none' }} // Hide the actual file input
                                                 />
                                             </div>
                                         </div>
+                                        {/* Image Previews */}
+                                        <div className="image-preview-container flex flex-wrap gap-4 mb-4">
+                                            {imagePreviews.map((preview, index) => (
+                                                <div key={images[index].name} className="image-preview w-24 h-24 border rounded overflow-hidden">
+                                                    <img src={preview} alt={`Selected preview ${index}`} className="object-cover w-full h-full" />
+                                                </div>
+                                            ))}
+                                        </div>
+
                                         <div className="block-button md:mt-10 mt-6">
                                             <button type="submit" className="bg-black text-white button-main w-full">Add Item</button>
                                         </div>
