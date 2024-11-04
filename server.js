@@ -1,5 +1,5 @@
 const express = require('express')
-const multer = require('multer');
+const multer = require('multer')
 const next = require('next')
 const fs = require('fs')
 const sqlite3 = require('sqlite3').verbose()
@@ -15,18 +15,18 @@ const port = process.env.PORT || 3000
 // Configure storage with custom filename
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, 'public', 'images', 'product')); // Adjust path as needed
+    cb(null, path.join(__dirname, 'public', 'images', 'product')) // Adjust path as needed
   },
   filename: (req, file, cb) => {
     // Generate a custom file name using the original name, a timestamp, and the original extension
-    const extension = path.extname(file.originalname);
-    const baseName = path.basename(file.originalname, extension);
-    const timestamp = Date.now();
-    cb(null, `${baseName}-${timestamp}${extension}`);
+    const extension = path.extname(file.originalname)
+    const baseName = path.basename(file.originalname, extension)
+    const timestamp = Date.now()
+    cb(null, `${baseName}-${timestamp}${extension}`)
   }
-});
+})
 
-const upload = multer({ storage });
+const upload = multer({ storage })
 // Initialize SQLite database
 const dbPath = path.join(__dirname, 'src', 'db', 'database.db')
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -124,11 +124,11 @@ app.prepare().then(() => {
   server.post('/api/add-product', upload.array('images', 10), (req, res) => {
     try {
       if (!req.body.product) {
-        return res.status(400).json({ error: 'Product data is missing from the request.' });
+        return res.status(400).json({ error: 'Product data is missing from the request.' })
       }
 
-      const newProduct = JSON.parse(req.body.product);
-      const imagePaths = req.files.map(file => `/images/product/${file.filename}`);
+      const newProduct = JSON.parse(req.body.product)
+      const imagePaths = req.files.map(file => `/images/product/${file.filename}`)
       console.log(imagePaths)
       newProduct.variation = [
         {
@@ -139,26 +139,26 @@ app.prepare().then(() => {
         }
       ]
       newProduct.thumbImage = [imagePaths[0], imagePaths[0]]
-      newProduct.images = imagePaths;
+      newProduct.images = imagePaths
 
-      const filePath = path.join(__dirname, 'src', 'data', 'product.json');
+      const filePath = path.join(__dirname, 'src', 'data', 'product.json')
       fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) return res.status(500).json({ error: 'Failed to read products file.' });
+        if (err) return res.status(500).json({ error: 'Failed to read products file.' })
 
-        const products = JSON.parse(data);
-        newProduct.id = (products.length + 1).toString();
-        products.push(newProduct);
+        const products = JSON.parse(data)
+        newProduct.id = (products.length + 1).toString()
+        products.push(newProduct)
 
         fs.writeFile(filePath, JSON.stringify(products, null, 2), err => {
-          if (err) return res.status(500).json({ error: 'Failed to save product.' });
-          res.status(201).json(newProduct);
-        });
-      });
+          if (err) return res.status(500).json({ error: 'Failed to save product.' })
+          res.status(201).json(newProduct)
+        })
+      })
     } catch (error) {
-      console.error('Error parsing product data:', error);
-      res.status(500).json({ error: 'Internal server error.' });
+      console.error('Error parsing product data:', error)
+      res.status(500).json({ error: 'Internal server error.' })
     }
-  });
+  })
 
   // Checkout endpoint
   server.post('/api/checkout', (req, res) => {
