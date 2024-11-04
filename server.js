@@ -132,10 +132,10 @@ app.prepare().then(() => {
       console.log(imagePaths)
       newProduct.variation = [
         {
-          'color': 'blue',
-          'colorCode': '#1F1F1F',
-          'colorImage': imagePaths[0],
-          'image': imagePaths[0]
+          color: 'blue',
+          colorCode: '#1F1F1F',
+          colorImage: imagePaths[0],
+          image: imagePaths[0]
         }
       ]
       newProduct.thumbImage = [imagePaths[0], imagePaths[0]]
