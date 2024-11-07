@@ -92,33 +92,35 @@ app.prepare().then(() => {
 
   // Route untuk login
   server.post('/api/login', async (req, res) => {
-    const { email, password } = req.body
+    const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email dan password harus diisi' })
+        return res.status(400).json({ error: 'Email dan password harus diisi' });
     }
 
     // Cek apakah pengguna ada di database
-    const sql = 'SELECT * FROM users WHERE email = ?'
+    const sql = 'SELECT * FROM users WHERE email = ?';
     db.get(sql, [email], async (err, users) => {
-      if (err) {
-        return res.status(500).json({ error: 'Internal server error' })
-      }
+        if (err) {
+            return res.status(500).json({ error: 'Internal server error' });
+        }
 
-      if (!users) {
-        return res.status(400).json({ error: 'Pengguna tidak ditemukan' })
-      }
+        if (!users) {
+            // Jika email tidak ditemukan
+            return res.status(400).json({ error: 'Pengguna tidak ditemukan' });
+        }
 
-      // Cek apakah password cocok
-      const isPasswordValid = await bcrypt.compare(password, users.pword)
-      if (!isPasswordValid) {
-        return res.status(400).json({ error: 'Password salah' })
-      }
+        // Cek apakah password cocok
+        const isPasswordValid = await bcrypt.compare(password, users.pword);
+        if (!isPasswordValid) {
+            // Jika password salah
+            return res.status(400).json({ error: 'Password salah' });
+        }
 
-      // Jika berhasil login, kirimkan data pengguna (bisa juga token JWT)
-      res.status(200).json({ message: 'Login berhasil', username: users.username })
-    })
-  })
+        // Jika login berhasil, respons dengan data pengguna
+        res.status(200).json({ message: 'Login berhasil', username: users.username, user_id: users.id });
+    });
+  });
 
   // Route to add a new product with image upload
   server.post('/api/add-product', upload.array('images', 10), (req, res) => {
@@ -254,6 +256,28 @@ app.prepare().then(() => {
       res.json({ order_status: row.order_status })
     })
   })
+
+  // Route to fetch orders for the logged-in user by user_id
+  server.get('/api/get-orders', (req, res) => {
+    const { user_id } = req.query; // Expecting user_id to be passed in the query
+
+    if (!user_id) {
+        return res.status(401).json({ error: 'User not logged in or invalid user_id' });
+    }
+
+    // Query the orders for the specific user_id
+    const orderQuery = 'SELECT * FROM order_status WHERE user_id = ?';
+    db.all(orderQuery, [user_id], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({ error: 'No orders found for this user' });
+        }
+
+        res.json(rows); // Send back the user's orders
+    });
+  });
 
   // Default request handler for Next.js
   server.all('*', (req, res) => {

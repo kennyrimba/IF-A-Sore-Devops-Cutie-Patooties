@@ -1,20 +1,54 @@
-'use client'
-import React, { useState } from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TopNavOne from '@/components/Header/TopNav/TopNavOne';
 import MenuOne from '@/components/Header/Menu/MenuOne';
 import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import Footer from '@/components/Footer/Footer';
-import * as Icon from "@phosphor-icons/react/dist/ssr";
+import { useRouter } from 'next/navigation';
 
 const OrderTracking = () => {
+    const router = useRouter();
     const [orderId, setOrderId] = useState('');
-    const [orderStatus, setOrderStatus] = useState('');
+    const [orderDetails, setOrderDetails] = useState(null);
+    const [userOrders, setUserOrders] = useState([]);
+    const [showTrackingResult, setShowTrackingResult] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    const handleTrackOrder = async (e: React.FormEvent<HTMLFormElement>) => {
+    // Check if user is logged in on component mount
+    useEffect(() => {
+        const userId = localStorage.getItem('user_id');
+        if (userId) {
+            setIsLoggedIn(true);
+            fetchOrders(userId); // Fetch orders if the user is logged in
+        } else {
+            setIsLoggedIn(false);
+        }
+    }, []);
+
+    // Fetch orders for the logged-in user in OrderTracking component
+    const fetchOrders = async (userId) => {
+        try {
+            const response = await fetch(`/api/get-orders?user_id=${userId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setUserOrders(data); // Set the user's orders if found
+            } else {
+                setUserOrders([]); // No orders found
+                console.warn("No orders found for this user.");
+            }
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+        }
+    };
+
+    const handleTrackOrder = async (e) => {
         e.preventDefault();
-    
-        // Make an API call to fetch order status
+
         const response = await fetch('/api/track-order', {
             method: 'POST',
             headers: {
@@ -22,15 +56,27 @@ const OrderTracking = () => {
             },
             body: JSON.stringify({ orderId }),
         });
-    
+
         const data = await response.json();
         if (response.ok) {
-            setOrderStatus(data.order_status); // Assuming your backend returns an object with order_status
+            setOrderDetails(data); // Set the detailed order information
+            setShowTrackingResult(true); // Show tracking result in the right section
         } else {
-            setOrderStatus('Order not found. Please check your Order ID.'); // Handle error
+            setOrderDetails(null);
+            setShowTrackingResult(true); // Show error in the right section
         }
     };
-    
+
+    // Handle logout
+    const handleLogout = () => {
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('username');
+        setIsLoggedIn(false);
+        setUserOrders([]);
+        setShowTrackingResult(false); // Reset to show welcome message
+        router.push('/login'); // Redirect to login page after logout
+    };
+
     return (
         <>
             <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" />
@@ -41,22 +87,60 @@ const OrderTracking = () => {
             <div className="order-tracking md:py-20 py-10">
                 <div className="container">
                     <div className="content-main flex gap-y-8 max-md:flex-col">
+                        {/* Left Section: Order List */}
                         <div className="left md:w-1/2 w-full lg:pr-[60px] md:pr-[40px] md:border-r border-line">
                             <div className="heading4">Order Tracking</div>
-                            <div className="mt-2">To track your order please enter your Order ID in the box below and press the "Track" button.</div>
-                            <form className="md:mt-7 mt-4" onSubmit={handleTrackOrder}>
-                                <div className="order-id">
-                                    <input 
-                                        className="border-line px-4 pt-3 pb-3 w-full rounded-lg" 
-                                        id="orderId" 
-                                        type="text" 
-                                        placeholder="Order ID *" 
-                                        value={orderId} 
-                                        onChange={(e) => setOrderId(e.target.value)} 
-                                        required 
-                                    />
+                            {isLoggedIn ? (
+                                userOrders.length > 0 ? (
+                                    <div className="mt-4">
+                                        <div className="heading4">Your Orders:</div>
+                                        <ul className="order-list mt-2 grid grid-cols-1 gap-4">
+                                            {userOrders.map(order => (
+                                                <li key={order.order_id} className="border p-4 rounded-lg shadow-sm bg-gray-100">
+                                                    <p><strong>Order ID:</strong> {order.order_id}</p>
+                                                    <p><strong>Status:</strong> {order.order_status}</p>
+                                                    <p><strong>Order Date:</strong> {new Date(order.order_date).toLocaleDateString()}</p>
+                                                    <p><strong>Product ID:</strong> {order.product_id}</p>
+                                                    <button
+                                                        className="button-main mt-2"
+                                                        onClick={() => {
+                                                            setOrderId(order.order_id);
+                                                            handleTrackOrder({ preventDefault: () => {} });
+                                                        }}
+                                                    >
+                                                        Track Order
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ) : (
+                                    <p className="mt-4">You have no orders yet.</p>
+                                )
+                            ) : (
+                                <div>
+                                    <p>Please log in to view your orders.</p>
+                                    <div className="block-button md:mt-7 mt-4">
+                                        <Link href={'/login'} className="button-main">Login</Link>
+                                    </div>
                                 </div>
-                                <div className="block-button md:mt-7 mt-4">
+                            )}
+
+
+                            {isLoggedIn && !userOrders.length && (
+                                <form className="md:mt-7 mt-4" onSubmit={handleTrackOrder}>
+                                    <div className="order-id">
+                                        <input 
+                                            className="border-line px-4 pt-3 pb-3 w-full rounded-lg" 
+                                            id="orderId" 
+                                            type="text" 
+                                            placeholder="Order ID *" 
+                                            value={orderId} 
+                                            onChange={(e) => setOrderId(e.target.value)} 
+                                            required 
+                                        />
+                                    </div>
+                                    <div className="block-button md:mt-7 mt-4">
                                         <button 
                                             className="button-main px-6 py-3 bg-blue-600 text-black bg-purple rounded-lg hover:bg-blue-700"
                                             type="submit"
@@ -64,21 +148,50 @@ const OrderTracking = () => {
                                             Track Order
                                         </button>
                                     </div>
-                            </form>
-                            {orderStatus && (
-                                <div className="mt-4">
-                                    <div className="heading4">Order Status:</div>
-                                    <div>{orderStatus}</div>
-                                </div>
+                                </form>
                             )}
                         </div>
-                        <div className="right md:w-1/2 w-full lg:pl-[60px] md:pl-[40px] flex items-center">
+
+                        {/* Right Section: Order Details */}
+                        <div className="right md:w-1/2 w-full lg:pl-[60px] md:pl-[40px]">
                             <div className="text-content">
-                                <div className="heading4">Already have an account?</div>
-                                <div className="mt-2 text-secondary">Welcome back. Sign in to access your personalized experience, saved preferences, and more. We{String.raw`'re`} thrilled to have you with us again!</div>
-                                <div className="block-button md:mt-7 mt-4">
-                                    <Link href={'/login'} className="button-main">Login</Link>
-                                </div>
+                                {showTrackingResult && orderDetails ? (
+                                    <div className="p-6 bg-white shadow rounded-lg">
+                                        <div className="heading4">Order Details:</div>
+                                        <p><strong>Order ID:</strong> {orderDetails.order_id}</p>
+                                        <p><strong>Status:</strong> {orderDetails.order_status}</p>
+                                        <p><strong>Order Date:</strong> {new Date(orderDetails.order_date).toLocaleDateString()}</p>
+                                        <p><strong>Product ID:</strong> {orderDetails.product_id}</p>
+                                        <p><strong>Shipping Address:</strong> {orderDetails.street_address}, {orderDetails.city}, {orderDetails.state}, {orderDetails.country}</p>
+                                        <p><strong>Contact:</strong> {orderDetails.phone_number}</p>
+                                    </div>
+                                ) : showTrackingResult ? (
+                                    <div>
+                                        <div className="heading4">Order Status:</div>
+                                        <p>{orderDetails ? 'Order details not found. Please check your Order ID.' : 'Order not found.'}</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {isLoggedIn ? (
+                                            <>
+                                                <div className="heading4">Welcome, {localStorage.getItem('username')}!</div>
+                                                <div className="block-button md:mt-7 mt-4">
+                                                    <button onClick={handleLogout} className="button-main">Logout</button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="heading4">New Customer?</div>
+                                                <div className="mt-2 text-secondary">
+                                                    Join us today for exclusive benefits and personalized experiences.
+                                                </div>
+                                                <div className="block-button md:mt-7 mt-4">
+                                                    <Link href={'/register'} className="button-main">Register</Link>
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -86,7 +199,7 @@ const OrderTracking = () => {
             </div>
             <Footer />
         </>
-    )
-}
+    );
+};
 
 export default OrderTracking;

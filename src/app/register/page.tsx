@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TopNavOne from '@/components/Header/TopNav/TopNavOne';
@@ -14,16 +14,17 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [successMessage, setSuccessMessage] = useState(''); // New success message state
+  const [successMessage, setSuccessMessage] = useState('');
 
+  // Check if user_id exists in localStorage; if it does, redirect to homepage
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn === 'true') {
-      router.push('/');  // Redirect if already logged in
+    const userId = localStorage.getItem('user_id');
+    if (userId) {
+      router.push('/');  // Redirect if user is already logged in
     }
   }, [router]);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -31,31 +32,35 @@ const Register = () => {
       return;
     }
 
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, email, password }),
-    });
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
 
-    const data = await res.json();
-    if (res.status === 201) {
-      setSuccessMessage('Registration successful! Redirecting...');
-      setTimeout(() => {
-        router.push('/'); // Redirect to root after 3 seconds
-      }, 3000);
-    } else {
-      alert(data.error);
+      const data = await res.json();
+
+      if (res.status === 201) {
+        setSuccessMessage('Registration successful! Redirecting...');
+        setTimeout(() => {
+          router.push('/'); // Redirect to root after 3 seconds
+        }, 3000);
+      } else {
+        alert(data.error + ', Maybe User already Exist');
+      }
+    } catch (error) {
+      console.error('Error during registration:', error);
+      alert('Terjadi kesalahan pada server. Silakan coba lagi.');
     }
   };
 
   return (
     <>
       <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" />
-      <div id="header" className='relative w-full'>
+      <div id="header" className="relative w-full">
         <MenuOne props="bg-transparent" />
-        <Breadcrumb heading='Create An Account' subHeading='Create An Account' />
+        <Breadcrumb heading="Create An Account" subHeading="Create An Account" />
       </div>
       <div className="register-block md:py-20 py-10">
         <div className="container">
@@ -107,14 +112,14 @@ const Register = () => {
                     required
                   />
                 </div>
-                <div className='flex items-center mt-5'>
+                <div className="flex items-center mt-5">
                   <div className="block-input">
-                    <input type="checkbox" name='terms' id='terms' required />
-                    <Icon.CheckSquare size={20} weight='fill' className='icon-checkbox' />
+                    <input type="checkbox" name="terms" id="terms" required />
+                    <Icon.CheckSquare size={20} weight="fill" className="icon-checkbox" />
                   </div>
-                  <label htmlFor='terms' className="pl-2 cursor-pointer text-secondary2">
+                  <label htmlFor="terms" className="pl-2 cursor-pointer text-secondary2">
                     I agree to the
-                    <Link href={'#!'} className='text-black hover:underline pl-1'>Terms of User</Link>
+                    <Link href="#!" className="text-black hover:underline pl-1">Terms of User</Link>
                   </label>
                 </div>
                 <div className="block-button md:mt-7 mt-4">
@@ -142,7 +147,7 @@ const Register = () => {
                   Welcome back. Sign in to access your personalized experience, saved preferences, and more. We{String.raw`'re`} thrilled to have you with us again!
                 </div>
                 <div className="block-button md:mt-7 mt-4">
-                  <Link href={'/login'} className="button-main">Login</Link>
+                  <Link href="/login" className="button-main">Login</Link>
                 </div>
               </div>
             </div>

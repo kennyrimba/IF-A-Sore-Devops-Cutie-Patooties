@@ -55,20 +55,19 @@ const MenuOne: React.FC<Props> = ({ props }) => {
         };
     }, [lastScrollPosition]);
 
-    // Mengecek status login dari localStorage
+    // Check login status using user_id from localStorage
     useEffect(() => {
-        const loggedInStatus = localStorage.getItem('isLoggedIn');
-        setIsLoggedIn(loggedInStatus === 'true');
+        const userId = localStorage.getItem('user_id');
+        setIsLoggedIn(!!userId); // If user_id exists, set isLoggedIn to true
     }, []);
 
-    // Fungsi untuk logout
+    // Logout function
     const handleLogout = () => {
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('username'); // Jika ingin menghapus data username juga
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('username'); // Remove username if desired
         setIsLoggedIn(false);
-        // Menampilkan alert setelah logout
         window.alert('You have successfully logged out!');
-        router.push('/'); // Redirect ke halaman utama setelah logout
+        router.push('/'); // Redirect to the homepage after logout
     };
 
     const handleGenderClick = (gender: string) => {
@@ -185,14 +184,14 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                             ${openLoginPopup ? 'open' : ''}`}
                                     >
                                         {isLoggedIn ? (
-                                            // Jika sudah login, tampilkan tombol Logout dan Support
+                                            // If logged in, show Logout and Support
                                             <>
                                                 <button className="button-main w-full text-center" onClick={handleLogout}>Logout</button>
                                                 <div className="bottom pt-4 border-t border-line"></div>
                                                 <Link href={'/support'} className='body1 hover:underline'>Support</Link>
                                             </>
                                         ) : (
-                                            // Jika belum login, tampilkan Login dan Register
+                                            // If not logged in, show Login and Register
                                             <>
                                                 <Link href={'/login'} className="button-main w-full text-center">Login</Link>
                                                 <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?

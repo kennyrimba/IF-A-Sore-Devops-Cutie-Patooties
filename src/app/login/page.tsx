@@ -11,66 +11,50 @@ const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Check if user_id exists in localStorage; if it does, consider the user logged in
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn === 'true') {
-        // Redirect ke halaman lain jika sudah login, misalnya ke dashboard
-        router.push('/');  // Ubah dengan halaman yang diinginkan
+    const userId = localStorage.getItem('user_id');
+    if (userId) {
+      setIsLoggedIn(true);
+      router.push('/');  // Redirect if already logged in
     }
   }, [router]);
 
-// if (typeof window !== 'undefined') {
-//     const isLoggedIn = localStorage.getItem('isLoggedIn');
-//     if (isLoggedIn === 'true') {
-//     // Redirect lebih cepat, langsung di tahap ini sebelum komponen dirender
-//     router.push('/');
-//     return null; // Jangan render komponen saat redirect
-//     }
-// }
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     
-    // Validasi input
+    // Validate input
     if (!email || !password) {
-      setErrorMessage('Email dan password harus diisi.');
+      alert('Email dan password harus diisi.');
       return;
     }
 
-    // Mengirim permintaan ke API login
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      // Send request to login API
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
-    
-    if (res.status === 200) {
-      // Jika login berhasil, simpan informasi login dan tampilkan pesan
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('username', data.username); // simpan username atau token sesuai kebutuhan
-      setIsLoggedIn(true);
-      setErrorMessage(''); // Hapus error jika login berhasil
-      router.push('/');
-    } else {
-      // Jika login gagal, tampilkan pesan error
-      setErrorMessage(data.error || 'Login gagal, periksa email atau password Anda.');
+      const data = await res.json();
+
+      if (res.status === 200) {
+        // Successful login: store user_id and username, then redirect
+        localStorage.setItem('user_id', data.user_id); // Store user_id instead of isLoggedIn
+        localStorage.setItem('username', data.username); 
+        setIsLoggedIn(true);
+        router.push('/');
+      } else {
+        alert(data.error || 'Login gagal, periksa email atau password Anda.');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      alert('Terjadi kesalahan pada server. Silakan coba lagi.');
     }
   };
-
-  // Mengecek status login dari localStorage
-  React.useEffect(() => {
-    const loggedInStatus = localStorage.getItem('isLoggedIn');
-    if (loggedInStatus === 'true') {
-      setIsLoggedIn(true);
-    }
-  }, []);
 
   return (
     <>
@@ -85,14 +69,7 @@ const Login = () => {
             <div className="left md:w-1/2 w-full lg:pr-[60px] md:pr-[40px] md:border-r border-line">
               <div className="heading4">Login</div>
 
-              {/* Menampilkan pesan jika login gagal */}
-              {errorMessage && (
-                <div className="bg-red-500 text-white p-2 rounded-md mb-4">
-                  {errorMessage}
-                </div>
-              )}
-
-              {/* Form login */}
+              {/* Login form */}
               {!isLoggedIn ? (
                 <form className="md:mt-7 mt-4" onSubmit={handleLogin}>
                   <div className="email">
@@ -127,7 +104,7 @@ const Login = () => {
                   <button 
                     className="button-main mt-4" 
                     onClick={() => {
-                      localStorage.removeItem('isLoggedIn');
+                      localStorage.removeItem('user_id'); // Remove user_id instead of isLoggedIn
                       localStorage.removeItem('username');
                       setIsLoggedIn(false);
                     }}
@@ -136,8 +113,8 @@ const Login = () => {
                   </button>
                 </div>
               )}
-
             </div>
+
             <div className="right md:w-1/2 w-full lg:pl-[60px] md:pl-[40px] flex items-center">
               <div className="text-content">
                 <div className="heading4">New Customer</div>
