@@ -97,54 +97,54 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                 <div className="heading4">Anvogue</div>
                             </Link>
                             <div className="menu-main h-full ">
-                            <ul className='flex items-center gap-8 h-full'>
-                                <li className='h-full relative'>
-                                    <Link
-                                        href="#!"
-                                        className={`text-button-uppercase duration-300 h-full flex items-center justify-center gap-1 ${pathname === '/' ? 'active' : ''}`}
-                                    >
-                                        Products
-                                    </Link>
-                                    <div className="sub-menu py-3 px-5 -left-10 w-max absolute grid grid-cols-4 gap-5 bg-white rounded-b-xl">
-                                        <ul>
-                                            <li>
-                                                <div
-                                                    onClick={() => handleGenderClick('men')}
-                                                    className={`link text-secondary duration-300 cursor-pointer ${pathname.includes('gender=men') ? 'active' : ''}`}
-                                                >
-                                                    Men Fashion
-                                                </div>
-                                            </li>
-                                            <li>
-                                                <div
-                                                    onClick={() => handleGenderClick('women')}
-                                                    className={`link text-secondary duration-300 cursor-pointer ${pathname.includes('gender=women') ? 'active' : ''}`}
-                                                >
-                                                    Women Fashion
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </li>
-                                <li className='h-full'>
-                                    <Link 
-                                        href={'/order-tracking'}
-                                        className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/order-tracking') ? 'active' : ''}`}
-                                    >
-                                        Order Tracking
-                                    </Link>
-                                </li>
-                                <li className='h-full relative'>
-                                    <Link href="/pages/about" className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/about') ? 'active' : ''}`}>
-                                        About Us
-                                    </Link>
-                                </li>
-                                <li className='h-full relative'>
-                                    <Link href="/pages/faqs" className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/faqs') ? 'active' : ''}`}>
-                                        FAQs
-                                    </Link>
-                                </li>
-                            </ul>
+                                <ul className='flex items-center gap-8 h-full'>
+                                    <li className='h-full relative'>
+                                        <Link
+                                            href="#!"
+                                            className={`text-button-uppercase duration-300 h-full flex items-center justify-center gap-1 ${pathname === '/' ? 'active' : ''}`}
+                                        >
+                                            Products
+                                        </Link>
+                                        <div className="sub-menu py-3 px-5 -left-10 w-max absolute grid grid-cols-4 gap-5 bg-white rounded-b-xl">
+                                            <ul>
+                                                <li>
+                                                    <div
+                                                        onClick={() => handleGenderClick('men')}
+                                                        className={`link text-secondary duration-300 cursor-pointer ${pathname.includes('gender=men') ? 'active' : ''}`}
+                                                    >
+                                                        Men Fashion
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div
+                                                        onClick={() => handleGenderClick('women')}
+                                                        className={`link text-secondary duration-300 cursor-pointer ${pathname.includes('gender=women') ? 'active' : ''}`}
+                                                    >
+                                                        Women Fashion
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </li>
+                                    <li className='h-full'>
+                                        <Link
+                                            href={'/order-tracking'}
+                                            className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/order-tracking') ? 'active' : ''}`}
+                                        >
+                                            Order Tracking
+                                        </Link>
+                                    </li>
+                                    <li className='h-full relative'>
+                                        <Link href="/pages/about" className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/about') ? 'active' : ''}`}>
+                                            About Us
+                                        </Link>
+                                    </li>
+                                    <li className='h-full relative'>
+                                        <Link href="/pages/faqs" className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/faqs') ? 'active' : ''}`}>
+                                            FAQs
+                                        </Link>
+                                    </li>
+                                </ul>
 
                             </div>
                         </div>
@@ -154,11 +154,14 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                 <div className="line absolute bg-line w-px h-6 -right-6"></div>
                             </div>
                             <div className="list-action flex items-center gap-4">
-                                <Link href={'/add-item'}>
-                                    <div className="max-md:hidden search-icon flex items-center cursor-pointer relative">
-                                        <Icon.PlusCircle size={24} color='black'></Icon.PlusCircle>
-                                    </div>
-                                </Link>
+                                {isLoggedIn && (
+                                    <Link href={'/add-item'}>
+                                        <div className="max-md:hidden search-icon flex items-center cursor-pointer relative">
+                                            <Icon.PlusCircle size={24} color='black'></Icon.PlusCircle>
+                                        </div>
+                                    </Link>
+                                )}
+
                                 {/* <div className="user-icon flex items-center justify-center cursor-pointer">
                                     <Icon.User size={24} color='black' onClick={handleLoginPopup} />
                                     <div
@@ -202,13 +205,19 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                     </div>
                                 </div>
 
-                                <div className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist}>
-                                    <Icon.Heart size={24} color='black' />
-                                </div>
-                                <div className="cart-icon flex items-center relative cursor-pointer" onClick={openModalCart}>
-                                    <Icon.Handbag size={24} color='black' />
-                                    <span className="quantity cart-quantity absolute -right-1.5 -top-1.5 text-xs text-white bg-black w-4 h-4 flex items-center justify-center rounded-full">{cartState.cartArray.length}</span>
-                                </div>
+                                {isLoggedIn && (
+                                    <>
+                                        <div className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist}>
+                                            <Icon.Heart size={24} color='black' />
+                                        </div>
+                                        <div className="cart-icon flex items-center relative cursor-pointer" onClick={openModalCart}>
+                                            <Icon.Handbag size={24} color='black' />
+                                            <span className="quantity cart-quantity absolute -right-1.5 -top-1.5 text-xs text-white bg-black w-4 h-4 flex items-center justify-center rounded-full">
+                                                {cartState.cartArray.length}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>

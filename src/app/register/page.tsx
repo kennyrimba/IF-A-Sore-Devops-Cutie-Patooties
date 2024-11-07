@@ -14,23 +14,14 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [successMessage, setSuccessMessage] = useState(''); // New success message state
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (isLoggedIn === 'true') {
-        // Redirect ke halaman lain jika sudah login, misalnya ke dashboard
-        router.push('/');  // Ubah dengan halaman yang diinginkan
+      router.push('/');  // Redirect if already logged in
     }
   }, [router]);
-
-  // if (typeof window !== 'undefined') {
-  //   const isLoggedIn = localStorage.getItem('isLoggedIn');
-  //   if (isLoggedIn === 'true') {
-  //     // Redirect lebih cepat, langsung di tahap ini sebelum komponen dirender
-  //     router.push('/');
-  //     return null; // Jangan render komponen saat redirect
-  //   }
-  // }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +41,10 @@ const Register = () => {
 
     const data = await res.json();
     if (res.status === 201) {
-      alert('Registration successful!');
+      setSuccessMessage('Registration successful! Redirecting...');
+      setTimeout(() => {
+        router.push('/'); // Redirect to root after 3 seconds
+      }, 3000);
     } else {
       alert(data.error);
     }
@@ -131,6 +125,14 @@ const Register = () => {
                     Register
                   </button>
                 </div>
+                
+                {/* Success message with animated checkmark */}
+                {successMessage && (
+                  <div className="mt-4 flex items-center text-green-600">
+                    <Icon.CheckCircle className="mr-2 animate-checkmark" />
+                    <span>{successMessage}</span>
+                  </div>
+                )}
               </form>
             </div>
             <div className="right md:w-1/2 w-full lg:pl-[60px] md:pl-[40px] flex items-center">
