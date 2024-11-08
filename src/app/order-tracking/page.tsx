@@ -26,46 +26,49 @@ const OrderTracking = () => {
         }
     }, []);
 
-    // Fetch orders for the logged-in user in OrderTracking component
-    const fetchOrders = async (userId) => {
-        try {
-            const response = await fetch(`/api/get-orders?user_id=${userId}`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setUserOrders(data); // Set the user's orders if found
-            } else {
-                setUserOrders([]); // No orders found
-                console.warn("No orders found for this user.");
-            }
-        } catch (error) {
-            console.error('Error fetching orders:', error);
-        }
-    };
-
     const handleTrackOrder = async (e) => {
         e.preventDefault();
-
+      
+        const userId = localStorage.getItem('user_id');
+        
         const response = await fetch('/api/track-order', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ orderId }),
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ orderId, userId }), // Pass user_id along with orderId
         });
-
+      
         const data = await response.json();
         if (response.ok) {
-            setOrderDetails(data); // Set the detailed order information
-            setShowTrackingResult(true); // Show tracking result in the right section
+          setOrderDetails(data); // Show order details if the user is authorized
+          setShowTrackingResult(true);
         } else {
-            setOrderDetails(null);
-            setShowTrackingResult(true); // Show error in the right section
+          setOrderDetails(null);
+          setShowTrackingResult(true);
+          alert(data.error || 'An error occurred while tracking the order.');
         }
-    };
+      };      
+
+    const fetchOrders = async (userId) => {
+        try {
+          const response = await fetch(`/api/get-orders?user_id=${userId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
+      
+          if (response.ok) {
+            const data = await response.json();
+            setUserOrders(data); // Display only the logged-in user's orders
+          } else {
+            setUserOrders([]);
+            console.warn("No orders found for this user.");
+          }
+        } catch (error) {
+          console.error('Error fetching orders:', error);
+        }
+      };
+      
 
     // Handle logout
     const handleLogout = () => {
@@ -98,9 +101,9 @@ const OrderTracking = () => {
                                             {userOrders.map(order => (
                                                 <li key={order.order_id} className="border p-4 rounded-lg shadow-sm bg-gray-100">
                                                     <p><strong>Order ID:</strong> {order.order_id}</p>
-                                                    <p><strong>Status:</strong> {order.order_status}</p>
-                                                    <p><strong>Order Date:</strong> {new Date(order.order_date).toLocaleDateString()}</p>
+                                                    {/* <p><strong>Status:</strong> {order.order_status}</p> */}
                                                     <p><strong>Product ID:</strong> {order.product_id}</p>
+                                                    <p><strong>Order Date:</strong> {new Date(order.order_date).toLocaleDateString()}</p>
                                                     <button
                                                         className="button-main mt-2"
                                                         onClick={() => {

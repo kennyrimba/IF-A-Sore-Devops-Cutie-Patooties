@@ -64,7 +64,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
     // Logout function
     const handleLogout = () => {
         localStorage.removeItem('user_id');
-        localStorage.removeItem('username'); // Remove username if desired
+        localStorage.removeItem('email'); // Remove email if desired
         setIsLoggedIn(false);
         window.alert('You have successfully logged out!');
         router.push('/'); // Redirect to the homepage after logout

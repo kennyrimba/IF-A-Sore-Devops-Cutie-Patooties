@@ -1,24 +1,23 @@
 'use client'
-import React, { useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import TopNavOne from '@/components/Header/TopNav/TopNavOne'
-import MenuOne from '@/components/Header/Menu/MenuOne'
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb'
-import Footer from '@/components/Footer/Footer'
-import { ProductType } from '@/type/ProductType'
-import productData from '@/data/Product.json'
-import Product from '@/components/Product/Product'
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import TopNavOne from '@/components/Header/TopNav/TopNavOne';
+import MenuOne from '@/components/Header/Menu/MenuOne';
+import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
+import Footer from '@/components/Footer/Footer';
+import { ProductType } from '@/type/ProductType';
+import productData from '@/data/Product.json';
+import Product from '@/components/Product/Product';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
-import { useCart } from '@/context/CartContext'
+import { useCart } from '@/context/CartContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-
 const Checkout = () => {
-    const searchParams = useSearchParams()
+    const searchParams = useSearchParams();
     const discount = Number(searchParams.get('discount')) || 0;
     const shippingFee = Number(searchParams.get('ship')) || 0;
-    const router = useRouter(); // Initialize useRouter
+    const router = useRouter();
 
     const { cartState } = useCart();
     let [totalCart, setTotalCart] = useState<number>(0);
@@ -36,12 +35,28 @@ const Checkout = () => {
         note: '',
     });
     const [message, setMessage] = useState('');
+
     // Calculate total cart amount
     cartState.cartArray.forEach(item => totalCart += item.price * item.quantity);
 
+    // Redirect to homepage if not logged in and prefill email if logged in
+    useEffect(() => {
+        const userId = localStorage.getItem('user_id');
+        const email = localStorage.getItem('email'); // User's email
+
+        if (!userId) {
+            router.push('/'); // Redirect if not logged in
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                email: email || '' // Set email as username and make it read-only
+            }));
+        }
+    }, [router]);
+
     const handlePayment = (item: string) => {
         setActivePayment(item);
-    }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
@@ -70,7 +85,7 @@ const Checkout = () => {
             paymentInfo: {
                 method: activePayment,
             },
-            userId: 1, // Replace with actual user ID from context or state
+            userId: localStorage.getItem('user_id'), // Use actual user ID from localStorage
         };
 
         try {
@@ -85,9 +100,8 @@ const Checkout = () => {
             const data = await response.json();
             if (response.ok) {
                 setMessage('Checkout successful! Redirecting to the home page...');
-                // Redirect to root after 3 seconds
                 setTimeout(() => {
-                    router.push('/'); // Redirect to home
+                    router.push('/');
                 }, 3000);
             } else {
                 setMessage(data.error || 'Something went wrong during checkout.');
@@ -111,42 +125,116 @@ const Checkout = () => {
                             <div className="form-login-block mt-3">
                                 <form className="p-5 border border-line rounded-lg" onSubmit={handleSubmit}>
                                     <div className="grid sm:grid-cols-2 gap-5">
-                                        <div className="email ">
-                                            <input className="border-line px-4 pt-3 pb-3 w-full rounded-lg" id="firstName" type="text" placeholder="First Name *" required onChange={handleChange} />
+                                        <div>
+                                            <input 
+                                                className="border-line px-4 pt-3 pb-3 w-full rounded-lg" 
+                                                id="firstName" 
+                                                type="text" 
+                                                placeholder="First Name *" 
+                                                value={formData.firstName} 
+                                                onChange={handleChange}
+                                                required 
+                                            />
                                         </div>
-                                        <div className="pass ">
-                                            <input className="border-line px-4 pt-3 pb-3 w-full rounded-lg" id="lastName" type="text" placeholder="Last Name *" required onChange={handleChange} />
+                                        <div>
+                                            <input 
+                                                className="border-line px-4 pt-3 pb-3 w-full rounded-lg" 
+                                                id="lastName" 
+                                                type="text" 
+                                                placeholder="Last Name *" 
+                                                value={formData.lastName} 
+                                                onChange={handleChange}
+                                                required 
+                                            />
                                         </div>
-                                        <div className="">
-                                            <input className="border-line px-4 pt-3 pb-3 w-full rounded-lg" id="email" type="email" placeholder="Email Address *" required onChange={handleChange} />
+                                        <div>
+                                            <input 
+                                                className="border-line px-4 pt-3 pb-3 w-full rounded-lg" 
+                                                id="email" 
+                                                type="email" 
+                                                placeholder="Email Address *" 
+                                                value={formData.email} 
+                                                readOnly 
+                                            />
                                         </div>
-                                        <div className="">
-                                            <input className="border-line px-4 pt-3 pb-3 w-full rounded-lg" id="phoneNumber" type="number" placeholder="Phone Numbers *" required onChange={handleChange} />
+                                        <div>
+                                            <input 
+                                                className="border-line px-4 pt-3 pb-3 w-full rounded-lg" 
+                                                id="phoneNumber" 
+                                                type="number" 
+                                                placeholder="Phone Number *" 
+                                                value={formData.phoneNumber}
+                                                onChange={handleChange}
+                                                required 
+                                            />
                                         </div>
-                                        <div className="col-span-full select-block">
-                                            <select className="border border-line px-4 py-3 w-full rounded-lg" id="country" name="country" defaultValue={'default'} onChange={handleChange}>
+                                        <div className="col-span-full">
+                                            <select 
+                                                className="border border-line px-4 py-3 w-full rounded-lg" 
+                                                id="country" 
+                                                name="country" 
+                                                defaultValue={'default'} 
+                                                onChange={handleChange}
+                                            >
                                                 <option value="default" disabled>Choose Country/Region</option>
-                                                <option value="India">United States</option>
-                                                <option value="India">Indonesia</option>
+                                                <option value="United States">United States</option>
+                                                <option value="Indonesia">Indonesia</option>
                                                 <option value="France">France</option>
                                                 <option value="Singapore">Singapore</option>
                                             </select>
-                                            <Icon.CaretDown className='arrow-down' />
                                         </div>
-                                        <div className="">
-                                            <input className="border-line px-4 py-3 w-full rounded-lg" id="city" type="text" placeholder="Town/City *" required onChange={handleChange} />
+                                        <div>
+                                            <input 
+                                                className="border-line px-4 py-3 w-full rounded-lg" 
+                                                id="city" 
+                                                type="text" 
+                                                placeholder="Town/City *" 
+                                                value={formData.city}
+                                                onChange={handleChange}
+                                                required 
+                                            />
                                         </div>
-                                        <div className="">
-                                            <input className="border-line px-4 py-3 w-full rounded-lg" id="streetAddress" type="text" placeholder="Street,..." required onChange={handleChange} />
+                                        <div>
+                                            <input 
+                                                className="border-line px-4 py-3 w-full rounded-lg" 
+                                                id="streetAddress" 
+                                                type="text" 
+                                                placeholder="Street Address *" 
+                                                value={formData.streetAddress}
+                                                onChange={handleChange}
+                                                required 
+                                            />
                                         </div>
-                                        <div className="">
-                                            <input className="border-line px-4 py-3 w-full rounded-lg" id="state" type="text" placeholder="State *" required onChange={handleChange} />
+                                        <div>
+                                            <input 
+                                                className="border-line px-4 py-3 w-full rounded-lg" 
+                                                id="state" 
+                                                type="text" 
+                                                placeholder="State *" 
+                                                value={formData.state}
+                                                onChange={handleChange}
+                                                required 
+                                            />
                                         </div>
-                                        <div className="">
-                                            <input className="border-line px-4 py-3 w-full rounded-lg" id="postalCode" type="text" placeholder="Postal Code *" required onChange={handleChange} />
+                                        <div>
+                                            <input 
+                                                className="border-line px-4 py-3 w-full rounded-lg" 
+                                                id="postalCode" 
+                                                type="text" 
+                                                placeholder="Postal Code *" 
+                                                value={formData.postalCode}
+                                                onChange={handleChange}
+                                                required 
+                                            />
                                         </div>
                                         <div className="col-span-full">
-                                            <textarea className="border border-line px-4 py-3 w-full rounded-lg" id="note" name="note" placeholder="Write note..." onChange={handleChange}></textarea>
+                                            <textarea 
+                                                className="border border-line px-4 py-3 w-full rounded-lg" 
+                                                id="note" 
+                                                name="note" 
+                                                placeholder="Write note..." 
+                                                onChange={handleChange}
+                                            ></textarea>
                                         </div>
                                     </div>
                                     <div className="payment-block md:mt-10 mt-6">
@@ -223,7 +311,7 @@ const Checkout = () => {
             </div>
             <Footer />
         </>
-    )
-}
+    );
+};
 
 export default Checkout;

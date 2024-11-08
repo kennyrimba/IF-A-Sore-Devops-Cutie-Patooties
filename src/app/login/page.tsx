@@ -42,9 +42,9 @@ const Login = () => {
       const data = await res.json();
 
       if (res.status === 200) {
-        // Successful login: store user_id and username, then redirect
+        // Successful login: store user_id and email, then redirect
         localStorage.setItem('user_id', data.user_id); // Store user_id instead of isLoggedIn
-        localStorage.setItem('username', data.username); 
+        localStorage.setItem('email', data.email); 
         setIsLoggedIn(true);
         router.push('/');
       } else {
@@ -100,12 +100,12 @@ const Login = () => {
                 </form>
               ) : (
                 <div className="md:mt-7 mt-4">
-                  <p className="text-green-500 font-semibold">Anda sudah login sebagai {localStorage.getItem('username')}</p>
+                  <p className="text-green-500 font-semibold">Anda sudah login sebagai {localStorage.getItem('email')}</p>
                   <button 
                     className="button-main mt-4" 
                     onClick={() => {
                       localStorage.removeItem('user_id'); // Remove user_id instead of isLoggedIn
-                      localStorage.removeItem('username');
+                      localStorage.removeItem('email');
                       setIsLoggedIn(false);
                     }}
                   >
