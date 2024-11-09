@@ -180,7 +180,10 @@ app.prepare().then(() => {
     }))
     Promise.all(insertPromises)
       .then(orderIds => res.status(200).json({ message: 'Checkout successful', orderIds }))
-      .catch(error => res.status(500).json({ error: 'An error occurred while saving orders' }))
+      .catch(error => {
+        console.log('Error during checkout:', error)
+        res.status(500).json({ error: 'An error occurred while saving orders' })
+      })
   })
 
   // Track order endpoint
