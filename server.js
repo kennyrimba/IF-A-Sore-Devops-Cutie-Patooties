@@ -11,7 +11,7 @@ const app = next({ dev })
 const handle = app.getRequestHandler()
 
 const port = process.env.PORT || 3000
-
+/* eslint-disable camelcase */
 // Configure storage with custom filename
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -180,7 +180,10 @@ app.prepare().then(() => {
     }))
     Promise.all(insertPromises)
       .then(orderIds => res.status(200).json({ message: 'Checkout successful', orderIds }))
-      .catch(error => res.status(500).json({ error: 'An error occurred while saving orders' }))
+      .catch(error => {
+        console.log('Error during checkout:', error)
+        res.status(500).json({ error: 'An error occurred while saving orders' })
+      })
   })
 
   // Track order endpoint
@@ -203,7 +206,7 @@ app.prepare().then(() => {
       res.json(rows)
     })
   })
-
+  /* eslint-enable camelcase */
   // Default handler for Next.js
   server.all('*', (req, res) => handle(req, res))
 
