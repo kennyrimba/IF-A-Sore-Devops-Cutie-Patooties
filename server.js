@@ -108,9 +108,9 @@ app.prepare().then(() => {
       newProduct.thumbImage = [imagePaths[0], imagePaths[0]]
       newProduct.images = imagePaths
 
-      const filePath = path.join(__dirname, 'src', 'data', 'product.json')
+      const filePath = path.join(__dirname, 'src', 'data', 'Product.json')
       fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) return res.status(500).json({ error: 'Failed to read products file.' })
+        if (err) return res.status(500).json({ error: filePath })
         const products = JSON.parse(data)
         newProduct.id = (products.length + 1).toString()
         products.push(newProduct)
