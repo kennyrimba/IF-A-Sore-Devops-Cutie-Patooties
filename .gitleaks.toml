@@ -1,7 +1,11 @@
-# .gitleaks.toml
+# This is the gitleaks configuration file.
 
-# Skip this specific pattern and file
-[[skip]]
-description = "Skip MYSQL_PASSWORD key in mysql-secret"
-files = ["k8s/cutie-ecommerce.yaml"]
-regex = "MYSQL_PASSWORD"
+# List of files or directories to ignore in the scan
+[[exclude]]
+description = "Ignore specific files or directories"
+files = [
+  "k8s/cutie-ecommerce.yaml",  # Specific file to ignore
+  "server.js"
+]
+
+# Additional rules or allowlists can be placed below
