@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-backend
+  template:
+    metadata:
+      labels:
+        app: frontend-backend
+    spec:
+      containers:
+        - name: frontend-backend
+          image: your-frontend-backend-image  # Use your built image
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-config  # ConfigMap that contains the MySQL hostname
+                  key: MYSQL_HOST
+            - name: MYSQL_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-config  # ConfigMap that contains the MySQL user
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret  # Secret that contains the MySQL password
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-config  # ConfigMap that contains the MySQL DB name
+                  key: MYSQL_DB_NAME

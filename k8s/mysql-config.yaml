@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+data:
+  MYSQL_HOST: mysql-db-service  # MySQL service name
+  MYSQL_USER: root              # MySQL user
+  MYSQL_DB_NAME: your-database-name  # Database name
