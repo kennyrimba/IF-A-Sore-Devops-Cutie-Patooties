@@ -2,7 +2,7 @@ const express = require('express')
 const multer = require('multer')
 const next = require('next')
 const fs = require('fs')
-const sqlite3 = require('sqlite3').verbose()
+const mysql = require('mysql2')
 const path = require('path')
 const bcrypt = require('bcrypt')
 
@@ -27,18 +27,25 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage })
 
-// Initialize SQLite database
-const dbPath = path.join(__dirname, 'src', 'db', 'database.db')
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error opening database', err.message)
-  } else {
-    console.log('Connected to the SQLite database.')
+// MySQL connection setup
+const db = mysql.createConnection({
+  host: process.env.MYSQL_HOST,// From ConfigMap
+  user: process.env.MYSQL_USER,// From ConfigMap
+  password: process.env.MYSQL_PASSWORD,// From Secret
+  database: process.env.MYSQL_DB_NAME// From ConfigMap
+})
 
+db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL database:', err.message)
+  } else {
+    console.log('Connected to MySQL database.')
+
+    // You can execute any necessary SQL to initialize the database, like creating tables
     const sqlPath = path.join(__dirname, 'src', 'db', 'statements.sql')
     try {
       const sqlScript = fs.readFileSync(sqlPath, 'utf-8')
-      db.exec(sqlScript, (err) => {
+      db.query(sqlScript, (err) => {
         if (err) {
           console.error('Error executing SQL script', err.message)
         } else {
@@ -69,7 +76,7 @@ app.prepare().then(() => {
     try {
       const hashedPassword = await bcrypt.hash(password, 10)
       const sql = 'INSERT INTO users (username, email, pword) VALUES (?, ?, ?)'
-      db.run(sql, [username, email, hashedPassword], function (err) {
+      db.query(sql, [username, email, hashedPassword], function (err) {
         if (err) {
           return res.status(500).json({ error: 'Error creating user' })
         }
@@ -87,7 +94,7 @@ app.prepare().then(() => {
       return res.status(400).json({ error: 'Email and password are required' })
     }
     const sql = 'SELECT * FROM users WHERE email = ?'
-    db.get(sql, [email], async (err, user) => {
+    db.query(sql, [email], async (err, user) => {
       if (err) return res.status(500).json({ error: 'Internal server error' })
       if (!user) return res.status(400).json({ error: 'User not found' })
       const isPasswordValid = await bcrypt.compare(password, user.pword)
@@ -128,7 +135,7 @@ app.prepare().then(() => {
   // Fetch products
   server.get('/practice/get-products', (req, res) => {
     const sql = 'SELECT * FROM order_status'
-    db.all(sql, [], (err, rows) => {
+    db.query(sql, [], (err, rows) => {
       if (err) return res.status(500).json({ error: 'Internal server error' })
       if (rows.length === 0) return res.status(404).json({ message: 'No orders found' })
       res.json(rows)
@@ -142,7 +149,7 @@ app.prepare().then(() => {
              order_status.order_status, order_status.order_date, order_status.product_id
       FROM users LEFT JOIN order_status ON users.id = order_status.user_id
     `
-    db.all(sql, [], (err, rows) => {
+    db.query(sql, [], (err, rows) => {
       if (err) return res.status(500).json({ error: 'Internal server error' })
       if (rows.length === 0) return res.status(404).json({ message: 'No users or orders found' })
       const userOrders = rows.reduce((acc, row) => {
@@ -169,7 +176,7 @@ app.prepare().then(() => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
     const insertPromises = cartItems.map(item => new Promise((resolve, reject) => {
-      db.run(insertOrder, [
+      db.query(insertOrder, [
         userId, shippingDetails.first_name, shippingDetails.last_name, shippingDetails.email, shippingDetails.phone_number,
         shippingDetails.country, shippingDetails.city, shippingDetails.street_address, shippingDetails.state,
         shippingDetails.postal_code, shippingDetails.note, paymentProcessed, 'pending', item.id
@@ -189,7 +196,7 @@ app.prepare().then(() => {
   // Track order endpoint
   server.post('/api/track-order', (req, res) => {
     const { orderId, userId } = req.body
-    db.get('SELECT * FROM order_status WHERE order_id = ? AND user_id = ?', [orderId, userId], (err, row) => {
+    db.query('SELECT * FROM order_status WHERE order_id = ? AND user_id = ?', [orderId, userId], (err, row) => {
       if (err) return res.status(500).json({ error: 'Internal server error' })
       if (!row) return res.status(403).json({ error: 'Unauthorized access' })
       res.json(row)
@@ -200,7 +207,7 @@ app.prepare().then(() => {
   server.get('/api/get-orders', (req, res) => {
     const { user_id } = req.query
     if (!user_id) return res.status(401).json({ error: 'User not logged in or invalid user_id' })
-    db.all('SELECT * FROM order_status WHERE user_id = ?', [user_id], (err, rows) => {
+    db.query('SELECT * FROM order_status WHERE user_id = ?', [user_id], (err, rows) => {
       if (err) return res.status(500).json({ error: 'Internal server error' })
       if (!rows || rows.length === 0) return res.status(404).json({ error: 'No orders found' })
       res.json(rows)

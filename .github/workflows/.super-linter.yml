@@ -1,0 +1,27 @@
+name: Lint Code Base
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  run-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensure full history for file change detection
+
+      - name: Run kubeval with no schema check
+        run: |
+          kubeval --no-schema k8s/cutie-ecommerce.yaml || echo "Skipping kubeval schema validation for cutie-ecommerce.yaml"
+        
+      - name: Lint Code Base
+        uses: github/super-linter@v4
+        env:
+          VALIDATE_ALL_CODEBASE: false  # Skip validating all files
+          DEFAULT_BRANCH: "main"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

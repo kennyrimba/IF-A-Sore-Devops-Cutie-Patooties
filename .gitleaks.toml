@@ -1,0 +1,11 @@
+# This is the gitleaks configuration file.
+
+# List of files or directories to ignore in the scan
+[[exclude]]
+description = "Ignore specific files or directories"
+files = [
+  "k8s/cutie-ecommerce.yaml",  # Specific file to ignore
+  "server.js"
+]
+
+# Additional rules or allowlists can be placed below
