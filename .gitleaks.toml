@@ -1,15 +1,7 @@
 # .gitleaks.toml
 
-# This is a basic configuration for gitleaks.
-
-[[allowlist]]
-# Exclude secrets or specific files from the scan
-description = "Allow base64 encoded password in mysql-secret"
-files = ["k8s/cutie-ecommerce.yaml"]  # Path to the YAML file
-
-[[allowlist]]
-# Exclude specific pattern (e.g., MYSQL_PASSWORD key)
-description = "Allow MYSQL_PASSWORD key"
-regex = "MYSQL_PASSWORD"  # Key name to ignore
-
-# Additional rules can be added as needed
+# Skip this specific pattern and file
+[[skip]]
+description = "Skip MYSQL_PASSWORD key in mysql-secret"
+files = ["k8s/cutie-ecommerce.yaml"]
+regex = "MYSQL_PASSWORD"

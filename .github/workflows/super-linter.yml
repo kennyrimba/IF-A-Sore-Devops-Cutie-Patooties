@@ -1,9 +1,3 @@
-# This workflow executes several linters on changed files based on languages used in your code base whenever
-# you push a code or open a pull request.
-#
-# You can adjust the behavior by modifying this file.
-# For more information, see:
-# https://github.com/github/super-linter
 name: Lint Code Base
 
 on:
@@ -11,6 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
 jobs:
   run-lint:
     runs-on: ubuntu-latest
@@ -18,15 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
-          fetch-depth: 0
-      
-      - name: Run kubeval with no schema check
-        run: kubeval --no-schema k8s/cutie-ecommerce.yaml || echo "Skipping kubeval for this file"
+          fetch-depth: 0  # Ensure full history for file change detection
 
+      - name: Run kubeval with no schema check
+        run: |
+          kubeval --no-schema k8s/cutie-ecommerce.yaml || echo "Skipping kubeval schema validation for cutie-ecommerce.yaml"
+        
       - name: Lint Code Base
         uses: github/super-linter@v4
         env:
-          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_ALL_CODEBASE: false  # Skip validating all files
           DEFAULT_BRANCH: "main"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
