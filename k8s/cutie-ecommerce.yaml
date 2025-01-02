@@ -205,3 +205,19 @@ spec:
         target:
           type: Utilization
           averageUtilization: 75
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-db-service
+spec:
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 3306           # Port exposed by the Service
+      targetPort: 3306     # Port the container listens on
+
+---

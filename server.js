@@ -29,34 +29,19 @@ const upload = multer({ storage })
 
 // MySQL connection setup
 const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST,// From ConfigMap
-  user: process.env.MYSQL_USER,// From ConfigMap
-  password: process.env.MYSQL_PASSWORD,// From Secret
+  host: process.env.MYSQL_HOST, // From ConfigMap
+  user: process.env.MYSQL_USER, // From ConfigMap
+  password: process.env.MYSQL_PASSWORD, // From Secret
   database: process.env.MYSQL_DB_NAME// From ConfigMap
 })
 
 db.connect((err) => {
   if (err) {
-    console.error('Error connecting to MySQL database:', err.message)
+    console.error('Error connecting to MySQL database:', err.message);
   } else {
-    console.log('Connected to MySQL database.')
-
-    // You can execute any necessary SQL to initialize the database, like creating tables
-    const sqlPath = path.join(__dirname, 'src', 'db', 'statements.sql')
-    try {
-      const sqlScript = fs.readFileSync(sqlPath, 'utf-8')
-      db.query(sqlScript, (err) => {
-        if (err) {
-          console.error('Error executing SQL script', err.message)
-        } else {
-          console.log('Database setup complete.')
-        }
-      })
-    } catch (err) {
-      console.error('Error reading SQL file:', err.message)
-    }
+    console.log('Connected to MySQL database.');
   }
-})
+});
 
 app.prepare().then(() => {
   const server = express()
