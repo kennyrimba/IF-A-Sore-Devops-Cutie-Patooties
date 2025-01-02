@@ -136,10 +136,12 @@ spec:
         command: ['sh', '-c', 'until nc -z mysql-db-service 3306; do echo waiting for mysql-db-service; sleep 2; done;']
       containers:
         - name: frontend-backend
-          image: kennyrimba/cutie:latest
+          image: kennyrimba/cutie-ecommerce:latest
           ports:
             - containerPort: 3000
           env:
+            - name: NODE_OPTIONS  # Add this environment variable
+              value: "--max-old-space-size=4096"
             - name: MYSQL_HOST
               valueFrom:
                 configMapKeyRef:
@@ -162,11 +164,11 @@ spec:
                   key: MYSQL_DB_NAME
           resources:
             requests:
-              cpu: "100m"
-              memory: "128Mi"
+              cpu: "1000m"
+              memory: "1Gi"
             limits:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: "2000m"
+              memory: "2Gi"  # Increased from 512Mi to 2Gi
 
 ---
 
