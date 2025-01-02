@@ -102,12 +102,27 @@ function startServer() {
         return res.status(400).json({ error: 'Email and password are required' })
       }
       const sql = 'SELECT * FROM users WHERE email = ?'
-      db.query(sql, [email], async (err, user) => {
+      db.query(sql, [email], async (err, results) => {
         if (err) return res.status(500).json({ error: 'Internal server error' })
+
+        // results is an array - get the first user
+        const user = results[0]
         if (!user) return res.status(400).json({ error: 'User not found' })
-        const isPasswordValid = await bcrypt.compare(password, user.pword)
-        if (!isPasswordValid) return res.status(400).json({ error: 'Invalid password' })
-        res.status(200).json({ message: 'Login successful', email: user.email, user_id: user.id })
+
+        try {
+          const isPasswordValid = await bcrypt.compare(password, user.pword)
+          if (!isPasswordValid) return res.status(400).json({ error: 'Invalid password' })
+
+          res.status(200).json({
+            message: 'Login successful',
+            email: user.email,
+            user_id: user.id,
+            username: user.username // Also sending username for display
+          })
+        } catch (error) {
+          console.error('Password comparison error:', error)
+          res.status(500).json({ error: 'Error validating password' })
+        }
       })
     })
 
@@ -233,7 +248,7 @@ function startServer() {
 
     server.listen(port, (err) => {
       if (err) throw err
-      console.log(`> Ready on http://localhost:${port}`)
+      console.log(`> Ready on http://0.0.0.0:${port}`)
     })
   })
 }

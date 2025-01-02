@@ -1,20 +1,26 @@
 # Use Node.js image
 FROM node:18-alpine
 
-# Create app directory in container
+# Set Node options globally
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+# Create app directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
+# Copy package files first
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the entire project into the container
+# Copy the rest of the app
 COPY . .
 
-# Expose necessary port (often 3000 for Next.js)
+# Build the app with increased memory limit
+RUN npm run build
+
+# Expose port
 EXPOSE 3000
 
-# Start the app
-CMD ["npm", "run", "start"]
+# Start command without shell wrapper
+CMD ["node", "server.js"]
