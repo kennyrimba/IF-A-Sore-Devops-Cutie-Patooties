@@ -5,6 +5,7 @@ const fs = require('fs')
 const mysql = require('mysql2')
 const path = require('path')
 const bcrypt = require('bcrypt')
+const promClient = require('prom-client')
 
 const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
@@ -69,6 +70,59 @@ function startServer() {
   app.prepare().then(() => {
     const server = express();
     server.use(express.json())// To parse JSON request bodies
+
+    const register = new promClient.Registry()
+    promClient.collectDefaultMetrics({ register })
+
+    const httpRequestDurationMicroseconds = new promClient.Histogram({
+      name: 'http_request_duration_seconds',
+      help: 'Duration of HTTP requests in seconds',
+      labelNames: ['method', 'route', 'status_code'],
+      buckets: [0.1, 0.5, 1, 2, 5]
+    })
+
+    const activeConnections = new promClient.Gauge({
+      name: 'nodejs_active_connections',
+      help: 'Number of active connections'
+    })
+
+    const orderTotalCounter = new promClient.Counter({
+      name: 'ecommerce_orders_total',
+      help: 'Total number of orders processed'
+    })
+
+    register.registerMetric(httpRequestDurationMicroseconds);
+    register.registerMetric(activeConnections);
+    register.registerMetric(orderTotalCounter);
+
+    // Add this to your server.js after creating the express app
+    server.get('/metrics', async (req, res) => {
+      try {
+        res.set('Content-Type', register.contentType);
+        res.end(await register.metrics());
+      } catch (err) {
+        res.status(500).end(err);
+      }
+    })
+
+    // Middleware to measure request duration
+    server.use((req, res, next) => {
+      const start = Date.now()
+      res.on('finish', () => {
+        const duration = Date.now() - start;
+        httpRequestDurationMicroseconds
+          .labels(req.method, req.route?.path || req.path, res.statusCode)
+          .observe(duration / 1000); // Convert to seconds
+      })
+      next()
+    })
+
+    const errorCounter = new promClient.Counter({
+      name: 'application_errors_total',
+      help: 'Total number of application errors',
+      labelNames: ['type']
+    });
+    register.registerMetric(errorCounter);
 
     // Example route: add more custom routes here
     server.get('/api/hello', (req, res) => {
@@ -209,9 +263,12 @@ function startServer() {
         })
       }))
       Promise.all(insertPromises)
-        .then(orderIds => res.status(200).json({ message: 'Checkout successful', orderIds }))
+        .then(orderIds => {
+          orderTotalCounter.inc(); // Increment order counter
+          res.status(200).json({ message: 'Checkout successful', orderIds })
+        })
         .catch(error => {
-          console.log('Error during checkout:', error)
+          console.log('Error during checkout:', error);
           res.status(500).json({ error: 'An error occurred while saving orders' })
         })
     })
