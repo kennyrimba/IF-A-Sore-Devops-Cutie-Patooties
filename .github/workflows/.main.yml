@@ -54,7 +54,8 @@ jobs:
         
     - name: Deploy to Kubernetes
       run: |
-        export KUBECONFIG=kubeconfig.yaml
+        $env:KUBECONFIG = "kubeconfig.yaml"
         kubectl apply -f cutie-ecommerce.yaml
         kubectl rollout restart deployment frontend-backend
         kubectl rollout restart deployment mysql
+      shell: powershell
