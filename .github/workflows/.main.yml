@@ -52,10 +52,16 @@ jobs:
       run: |
         echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig.yaml
         
+    - name: Verify Kubernetes connection
+      run: |
+        $env:KUBECONFIG = "$(Get-Location)\kubeconfig.yaml"
+        kubectl cluster-info
+      shell: powershell
+        
     - name: Deploy to Kubernetes
       run: |
-        $env:KUBECONFIG = "kubeconfig.yaml"
-        kubectl apply -f cutie-ecommerce.yaml
+        $env:KUBECONFIG = "$(Get-Location)\kubeconfig.yaml"
+        kubectl apply -f k8s/cutie-ecommerce.yaml
         kubectl rollout restart deployment frontend-backend
         kubectl rollout restart deployment mysql
       shell: powershell
