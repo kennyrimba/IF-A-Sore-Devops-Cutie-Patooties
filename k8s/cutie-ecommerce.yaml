@@ -187,8 +187,8 @@ spec:
               cpu: "2000m"
               memory: "2Gi"
             limits:
-              cpu: "4000m"
-              memory: "4Gi"  # Increased from 512Mi to 2Gi
+              cpu: "2000m"
+              memory: "2Gi"  # Increased from 512Mi to 2Gi
 
 ---
 
@@ -583,7 +583,7 @@ spec:
               runAsUser: 472
           image: grafana/grafana:10.0.0
           ports:
-            - containerPort: 3000
+            - containerPort: 4000
           env:
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: "admin"  # Change this in production
@@ -623,8 +623,9 @@ spec:
   selector:
     app: grafana
   ports:
-    - port: 3000
-      targetPort: 3000
+    - name: http
+      port: 4000
+      targetPort: 4000
 
 ---
 
@@ -656,6 +657,6 @@ spec:
           service:
             name: grafana
             port:
-              number: 3000
+              number: 4000
 
 ---
