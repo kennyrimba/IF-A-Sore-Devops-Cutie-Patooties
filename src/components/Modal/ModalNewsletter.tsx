@@ -36,7 +36,7 @@ const ModalNewsletter = () => {
                             <div className="text-xs font-semibold uppercase text-center">Special Offer</div>
                             <div
                                 className="lg:text-[70px] text-4xl lg:leading-[78px] leading-[42px] font-bold uppercase text-center">
-                                Black<br />Fridays</div>
+                                Cyber<br />Monday</div>
                             <div className="text-button-uppercase text-center">New customers save <span
                                 className="text-red">30%</span>
                                 with the code</div>
